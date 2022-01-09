@@ -12,14 +12,8 @@
 #define FIREBASE_HOST "ssparking-iot-default-rtdb.europe-west1.firebasedatabase.app"
 #define FIREBASE_AUTH "Mb9yaUqFgg3ItNAxRDu22dbEMhONgZsWukh8jLS6"
 
-//#define WIFI_SSID "b70b06"
-//#define WIFI_PASSWORD "281236598"
-
-//#define WIFI_SSID "Maslese"
-//#define WIFI_PASSWORD "sadin1972"
-
-#define WIFI_SSID "ElmirMobile"
-#define WIFI_PASSWORD "fit12345"
+#define WIFI_SSID ""
+#define WIFI_PASSWORD ""
 
 int TRIG = D6;                  //ultrasonic trig  pin
 int ECHO = D5;                  // ultrasonic echo pin
