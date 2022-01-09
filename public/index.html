@@ -1,0 +1,236 @@
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>IoT Smart Parking</title>
+</head>
+
+<style>
+  .parking-lots {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .parking-lot {
+    display: flex;
+    flex-direction: column-reverse;
+    width: 21%;
+    padding-top: 28%;
+    position: relative;
+    align-items: center;
+    border: 2px solid green;
+    margin: 1vh 1vw;
+  }
+
+  .parking {
+    position: absolute;
+    width: 75%;
+    padding-bottom: 4vh;
+  }
+
+  .status {
+    display: flex;
+    justify-content: center;
+    top: 0;
+    position: absolute;
+    width: 100%;
+    padding-top: 4px;
+    font-size: 3vw;
+  }
+
+  .data-container {
+    width: 100%;
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .data-box {
+    border: 1px solid gray;
+    width: 40%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 2vh 1vw;
+  }
+
+  .data {
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .data-element {
+    display: flex;
+    width: 100%;
+    margin: 1vh 1vw;
+  }
+</style>
+
+<body>
+  <pre style="font-size: xx-large; margin: 2px;width: 100%; text-align: center;">IoT Smart Parking</pre>
+  <pre style="font-size: x-large; margin: 2px;width: 100%; text-align: center;"
+    id="novi-info">Nema informacija o dešavanjima</pre>
+  <pre style="font-size: x-large; margin: 2px; width: 100%; text-align: center;"
+    id="trenutni-broj">Trenutni broj automobila na parkingu: </pre>
+  <div class="parking-lots" style="display: flex;">
+    <div class="parking-lot" id="parking-lot-1">
+      <pre class="status" id="status-1">SLOBODNO</pre>
+      <img class="parking"
+        src="https://www.clipartmax.com/png/full/290-2905419_parking-lot-comments-parking-png-icon.png">
+    </div>
+    <div class="parking-lot" id="parking-lot-2">
+      <pre class="status" id="status-2">SLOBODNO</pre>
+      <img class="parking"
+        src="https://www.clipartmax.com/png/full/290-2905419_parking-lot-comments-parking-png-icon.png">
+    </div>
+    <div class="parking-lot" id="parking-lot-3">
+      <pre class="status" id="status-3">SLOBODNO</pre>
+      <img class="parking"
+        src="https://www.clipartmax.com/png/full/290-2905419_parking-lot-comments-parking-png-icon.png">
+    </div>
+  </div>
+  <div class="data-container">
+    <div class="data-box">
+      <pre>Zauzetost mjesta tokom vremena</pre>
+      <div class="data">
+        <pre class="data-element" id='postotak-1'></pre>
+        <pre class="data-element" id='postotak-2'></pre>
+        <pre class="data-element" id='postotak-3'></pre>
+      </div>
+    </div>
+
+    <div class="data-box">
+      <pre>Informacije o parkingu</pre>
+      <div class="data">
+        <pre class="data-element" id='broj-mjesta'></pre>
+        <pre class="data-element" id='prosjecno-auta'></pre>
+        <pre class="data-element" id='odbijenih-auta'></pre>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.7.0/firebase.js"></script>
+  <script>
+    // Your web app's Firebase configuration
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+    const firebaseConfig = {
+      apiKey: "AIzaSyDLRaHbjC1oMwOCIWlVYPZmm53LkUtzigU",
+      authDomain: "ssparking-iot.firebaseapp.com",
+      databaseURL: "https://ssparking-iot-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "ssparking-iot",
+      storageBucket: "ssparking-iot.appspot.com",
+      messagingSenderId: "502248656715",
+      appId: "1:502248656715:web:8f72014edcb55ab1d7a2ce"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    var dbRef = firebase.database().ref();
+
+    getPostotak(dbRef, "PM1", document.getElementById('postotak-1'));
+    getPostotak(dbRef, "PM2", document.getElementById('postotak-2'));
+    getPostotak(dbRef, "PM3", document.getElementById('postotak-3'));
+
+    getMjestoStatus(dbRef, "PM1", document.getElementById('status-1'), document.getElementById('parking-lot-1'));
+    getMjestoStatus(dbRef, "PM2", document.getElementById('status-2'), document.getElementById('parking-lot-2'));
+    getMjestoStatus(dbRef, "PM3", document.getElementById('status-3'), document.getElementById('parking-lot-3'));
+
+    function getPostotak(dbRef, child, ref) {
+      dbRef.child(child).on('value', function (snapshot) {
+        var zauzeto = 0;
+        console.log(snapshot);
+        snapshot.forEach(function (_child) {
+          console.log(_child.val())
+          if (_child.val() == 1)
+            zauzeto++;
+        });
+        ref.innerHTML = child + ": ";
+        var ukupno = snapshot.numChildren();
+        if (ukupno != 0)
+          ref.innerHTML += (zauzeto / ukupno * 100).toFixed(2) + "%";
+        else
+          ref.innerHTML += "Nema informacija";
+
+      });
+    }
+
+    function getMjestoStatus(dbRef, child, status, lot) {
+      dbRef.child(child).limitToLast(1).on('value', function (snapshot) {
+        var zauzeto = 0;
+        for (var key in snapshot.val()) {
+          zauzeto = snapshot.val()[key];
+        }
+
+        if (zauzeto) {
+          status.innerHTML = "ZAUZETO";
+          lot.style.borderColor = "red";
+        }
+        else {
+          status.innerHTML = "SLOBODNO";
+          lot.style.borderColor = "green";
+        }
+      });
+    }
+
+    var zadnjiBroj;
+    dbRef.child("BrojAuta").limitToLast(1).on('value', function (snapshot) {
+      var trenutno;
+      for (var key in snapshot.val()) {
+        trenutno = snapshot.val()[key];
+      }
+
+      if (trenutno != null) {
+        document.getElementById("trenutni-broj").innerHTML = "Trenutni broj automobila na parkingu: " + trenutno;
+
+        if (zadnjiBroj > trenutno) {
+          document.getElementById("novi-info").innerHTML = "Posljednje informacije: Automobil je napustio parking.";
+        }
+        else {
+          document.getElementById("novi-info").innerHTML = "Posljednje informacije: Automobil je ušao na parking.";
+        }
+      }
+      else {
+        document.getElementById("trenutni-broj").innerHTML = "Trenutni broj automobila na parkingu: Nema informacija";
+      }
+
+
+      zadnjiBroj = trenutno;
+    });
+
+    dbRef.child("UkupnoMjesta").on('value', function (snapshot) {
+      document.getElementById("broj-mjesta").innerHTML = "Broj parking mjesta: " + snapshot.val();
+    });
+
+    dbRef.child("BrojAuta").on('value', function (snapshot) {
+      var sum = 0;
+      snapshot.forEach(function (_child) {
+        sum += _child.val();
+      });
+
+      var ukupno = snapshot.numChildren();
+
+      if (ukupno != 0)
+        document.getElementById("prosjecno-auta").innerHTML = "Prosječan broj auta: " + (sum / ukupno).toFixed(2);
+      else
+
+        document.getElementById("prosjecno-auta").innerHTML = "Prosječan broj auta: Nema informacija";
+    });
+
+    dbRef.child("NemaMjesta").on('value', function (snapshot) {
+      var ukupno = snapshot.numChildren();
+
+      if (ukupno != null && ukupno != 0)
+        document.getElementById("novi-info").innerHTML = "Posljednje informacije: Automobil je odbijen.";
+      document.getElementById("odbijenih-auta").innerHTML = "Broj odbijenih auta: " + ukupno;
+    });
+  </script>
+</body>
+
+</html>
